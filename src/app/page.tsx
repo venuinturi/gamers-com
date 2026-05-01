@@ -34,13 +34,22 @@ export default async function Dashboard() {
           <h1 className="text-4xl font-bold tracking-tight">Gamers Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, friend!</p>
         </div>
-        <Link 
-          href="/matches/new"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={20} />
-          New Match
-        </Link>
+        <div className="flex gap-4">
+          <Link 
+            href="/games/tic-tac-toe"
+            className="flex items-center gap-2 border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            <Gamepad2 size={20} />
+            Play Tic-Tac-Toe
+          </Link>
+          <Link 
+            href="/matches/new"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={20} />
+            New Match
+          </Link>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
