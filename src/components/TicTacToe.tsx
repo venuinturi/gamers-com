@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { User } from '@prisma/client';
-import { createMatch } from '@/app/actions/match';
+import { createMatchWithNames } from '@/app/actions/match';
 
 export default function TicTacToe({ users, gameId }: { users: User[], gameId: number }) {
   const [playerX, setPlayerX] = useState<string>('');
@@ -21,7 +21,7 @@ export default function TicTacToe({ users, gameId }: { users: User[], gameId: nu
     for (let i = 0; i < lines.length; i++) {
       const [a, b, c] = lines[i];
       if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return squares[a];
+        return squares[a] as 'X' | 'O';
       }
     }
     return squares.includes(null) ? null : 'Draw';
@@ -29,8 +29,8 @@ export default function TicTacToe({ users, gameId }: { users: User[], gameId: nu
 
   const winner = calculateWinner(board);
   const status = winner 
-    ? winner === 'Draw' ? "It's a Draw!" : `Winner: ${winner === 'X' ? users.find(u => u.id.toString() === playerX)?.username : users.find(u => u.id.toString() === playerO)?.username}`
-    : `Next player: ${xIsNext ? 'X' : 'O'} (${xIsNext ? users.find(u => u.id.toString() === playerX)?.username : users.find(u => u.id.toString() === playerO)?.username})`;
+    ? winner === 'Draw' ? "It's a Draw!" : `Winner: ${winner === 'X' ? playerX : playerO}`
+    : `Next player: ${xIsNext ? 'X' : 'O'} (${xIsNext ? playerX : playerO})`;
 
   const handleClick = (i: number) => {
     if (winner || board[i]) return;
@@ -42,24 +42,9 @@ export default function TicTacToe({ users, gameId }: { users: User[], gameId: nu
 
   const handleSaveResult = async () => {
     setSubmitting(true);
-    const formData = new FormData();
-    formData.set('gameId', gameId.toString());
-
-    const participants = [
-      { 
-        userId: playerX, 
-        score: winner === 'X' ? 1 : 0, 
-        isWinner: winner === 'X' 
-      },
-      { 
-        userId: playerO, 
-        score: winner === 'O' ? 1 : 0, 
-        isWinner: winner === 'O' 
-      }
-    ];
-
-    formData.set('participants', JSON.stringify(participants));
-    await createMatch(formData);
+    // Explicitly casting winner to the expected union type
+    const winResult = winner as 'X' | 'O' | 'Draw';
+    await createMatchWithNames(gameId, playerX, playerO, winResult);
   };
 
   if (!gameStarted) {
@@ -67,30 +52,34 @@ export default function TicTacToe({ users, gameId }: { users: User[], gameId: nu
       <div className="bg-card p-8 rounded-xl border shadow-lg max-w-md mx-auto space-y-6">
         <h2 className="text-2xl font-bold text-center">New Tic-Tac-Toe Game</h2>
         <div className="space-y-4">
+          <datalist id="existing-friends">
+            {users.map(u => <option key={u.id} value={u.username} />)}
+          </datalist>
+          
           <div className="space-y-2">
-            <label className="text-sm font-medium">Player X</label>
-            <select 
+            <label className="text-sm font-medium">Player X Name</label>
+            <input 
+              type="text"
+              list="existing-friends"
+              placeholder="Enter name..."
               className="w-full p-2 rounded-md border bg-background"
               value={playerX}
               onChange={(e) => setPlayerX(e.target.value)}
-            >
-              <option value="">Select Friend</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
-            </select>
+            />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">Player O</label>
-            <select 
+            <label className="text-sm font-medium">Player O Name</label>
+            <input 
+              type="text"
+              list="existing-friends"
+              placeholder="Enter name..."
               className="w-full p-2 rounded-md border bg-background"
               value={playerO}
               onChange={(e) => setPlayerO(e.target.value)}
-            >
-              <option value="">Select Friend</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
-            </select>
+            />
           </div>
           <button 
-            disabled={!playerX || !playerO || playerX === playerO}
+            disabled={!playerX.trim() || !playerO.trim() || playerX.trim() === playerO.trim()}
             onClick={() => setGameStarted(true)}
             className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
           >
