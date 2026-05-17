@@ -43,3 +43,12 @@ model MatchParticipant {
 
   @@id([matchId, userId])
 }
+
+model ExternalAccount {
+  id        Int      @id @default(autoincrement())
+  platform  String   // e.g., 'RahulShettyAcademy'
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
